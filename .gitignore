@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# LoRA / LLM models
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# checkpoints
+checkpoint-*/
+
+# merged models
+llama8b-merged/
+llama8b-lora/
