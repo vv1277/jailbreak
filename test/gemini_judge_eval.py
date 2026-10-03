@@ -327,4 +327,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-#GEMINI_API_KEY="***REMOVED-REVOKED-KEY***" python3 gemini_judge_eval.py
+# Usage: set your key in the environment, then run.
+#   export GEMINI_API_KEY="<your-api-key>"
+#   python3 gemini_judge_eval.py

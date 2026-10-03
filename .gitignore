@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Presentation assets (images, slides)
+AI-ppt/
+
 # LoRA / LLM models
 *.safetensors
 *.pt
@@ -10,6 +13,6 @@
 # checkpoints
 checkpoint-*/
 
-# merged models
+# merged / trained model output dirs
 llama8b-merged/
 llama8b-lora/
